@@ -1,52 +1,54 @@
-const express = require('express');
-const multer = require('multer');
-const axios = require('axios');
-const path = require('path');
-const fs = require('fs');
+const express = require("express");
+const multer = require("multer");
+const fetch = require("node-fetch");
+const path = require("path");
+const fs = require("fs/promises");
+
 const app = express();
-const upload = multer({ dest: 'uploads/' });
-require('dotenv').config();
+const upload = multer({ storage: multer.memoryStorage() });
 
+app.use(express.static("public"));
 app.use(express.json());
-app.use(express.static('public'));
 
-app.post('/upload', upload.array('files'), async (req, res) => {
-    const { repo, token } = req.body;
+app.post("/upload", upload.any(), async (req, res) => {
+    const { token, repository } = req.body;
 
-    if (!repo || !token || !req.files) {
-        return res.status(400).json({ message: 'Repository, token, and files are required.' });
+    if (!token || !repository) {
+        return res.status(400).json({ error: "Missing GitHub token or repository." });
     }
 
-    const [owner, repoName] = repo.split('/');
-    const promises = req.files.map(async (file) => {
-        const filePath = path.join(__dirname, file.path);
-        const content = fs.readFileSync(filePath, { encoding: 'base64' });
-        const url = `https://api.github.com/repos/${owner}/${repoName}/contents/${file.originalname}`;
-
-        const response = await axios.put(url, {
-            message: `Upload ${file.originalname}`,
-            content: content,
-        }, {
-            headers: {
-                'Authorization': `token ${token}`,
-                'Accept': 'application/vnd.github .v3+json'
-            }
-        });
-
-        return response.data;
-    });
-
     try {
-        await Promise.all(promises);
-        res.json({ message: 'Files uploaded successfully!' });
+        for (const file of req.files) {
+            const filePath = file.originalname;
+            const content = file.buffer.toString("base64");
+
+            const response = await fetch(
+                `https://api.github.com/repos/${repository}/contents/${filePath}`,
+                {
+                    method: "PUT",
+                    headers: {
+                        Authorization: `token ${token}`,
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        message: `Add ${filePath}`,
+                        content,
+                    }),
+                }
+            );
+
+            if (!response.ok) {
+                const error = await response.json();
+                return res.status(400).json({ error: error.message });
+            }
+        }
+
+        res.json({ message: "Files uploaded successfully." });
     } catch (error) {
-        res.status(500).json({ message: 'Error uploading files', error: error.message });
-    } finally {
-        req.files.forEach(file => fs.unlinkSync(path.join(__dirname, file.path))); // Clean up uploaded files
+        res.status(500).json({ error: error.message });
     }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
+app.listen(3000, () => {
+    console.log("Server running on http://localhost:3000");
 });
