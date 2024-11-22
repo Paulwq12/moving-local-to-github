@@ -1,96 +1,52 @@
-const express = require("express");
-const multer = require("multer");
-const simpleGit = require("simple-git");
-const fs = require("fs");
-const path = require("path");
-const fsExtra = require("fs-extra");
-
+const express = require('express');
+const multer = require('multer');
+const axios = require('axios');
+const path = require('path');
+const fs = require('fs');
 const app = express();
-const PORT = 3000;
+const upload = multer({ dest: 'uploads/' });
+require('dotenv').config();
 
-// Ensure "uploads" folder exists
-const uploadsFolder = path.join(__dirname, "uploads");
-if (!fs.existsSync(uploadsFolder)) {
-  fs.mkdirSync(uploadsFolder, { recursive: true });
-}
-
-// Configure multer for file uploads
-const upload = multer({ dest: uploadsFolder });
-
-// Middleware for handling JSON and URL-encoded form data
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.static('public'));
 
-// Serve static files
-app.use(express.static("public"));
+app.post('/upload', upload.array('files'), async (req, res) => {
+    const { repo, token } = req.body;
 
-app.post("/upload", upload.array("files"), async (req, res) => {
-  const { repoUrl, token } = req.body;
-  const files = req.files;
-
-  if (!repoUrl || !token) {
-    return res.status(400).json({ error: "Missing repository URL or token." });
-  }
-
-  const username = repoUrl.split("/")[3];
-  const authenticatedRepoUrl = `https://${username}:${token}@${repoUrl.split("https://")[1]}`;
-  const localRepoPath = path.join(__dirname, "temp-repo");
-
-  try {
-    const git = simpleGit();
-    if (fs.existsSync(localRepoPath)) {
-      fs.rmSync(localRepoPath, { recursive: true, force: true });
-    }
-    await git.clone(authenticatedRepoUrl, localRepoPath);
-
-    // Move files and folders to the repository
-    for (const file of files) {
-      const destPath = path.join(localRepoPath, file.originalname);
-
-      // If the uploaded file is a directory, move it recursively
-      if (fs.statSync(file.path).isDirectory()) {
-        await moveDirectory(file.path, destPath);
-      } else {
-        // If it's a file, move it to the destination folder
-        fs.renameSync(file.path, destPath);
-      }
+    if (!repo || !token || !req.files) {
+        return res.status(400).json({ message: 'Repository, token, and files are required.' });
     }
 
-    const gitRepo = simpleGit(localRepoPath);
-    await gitRepo.addConfig("user.name", "Uploader");
-    await gitRepo.addConfig("user.email", "uploader@example.com");
-    await gitRepo.add(".");
-    await gitRepo.commit("Automated commit via upload page");
-    await gitRepo.push("origin", "main");
+    const [owner, repoName] = repo.split('/');
+    const promises = req.files.map(async (file) => {
+        const filePath = path.join(__dirname, file.path);
+        const content = fs.readFileSync(filePath, { encoding: 'base64' });
+        const url = `https://api.github.com/repos/${owner}/${repoName}/contents/${file.originalname}`;
 
-    // Cleanup
-    fs.rmSync(localRepoPath, { recursive: true, force: true });
+        const response = await axios.put(url, {
+            message: `Upload ${file.originalname}`,
+            content: content,
+        }, {
+            headers: {
+                'Authorization': `token ${token}`,
+                'Accept': 'application/vnd.github .v3+json'
+            }
+        });
 
-    res.json({ message: "Files and folders successfully pushed to the repository." });
-  } catch (error) {
-    console.error(error);
+        return response.data;
+    });
 
-    if (fs.existsSync(localRepoPath)) {
-      fs.rmSync(localRepoPath, { recursive: true, force: true });
+    try {
+        await Promise.all(promises);
+        res.json({ message: 'Files uploaded successfully!' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error uploading files', error: error.message });
+    } finally {
+        req.files.forEach(file => fs.unlinkSync(path.join(__dirname, file.path))); // Clean up uploaded files
     }
-
-    res.status(500).json({ error: error.message });
-  }
 });
 
-// Function to move a directory and its contents
-async function moveDirectory(sourceDir, destDir) {
-  try {
-    // Use fs-extra to copy the entire directory structure (including subfolders and files)
-    await fsExtra.copy(sourceDir, destDir, { overwrite: true });
-
-    // Remove the original uploaded directory after moving its contents
-    await fsExtra.remove(sourceDir);
-  } catch (err) {
-    console.error("Error moving directory:", err);
-  }
-}
-
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
+    console.log(`Server is running on http://localhost:${PORT}`);
 });
