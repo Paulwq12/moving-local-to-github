@@ -1,17 +1,14 @@
 {
-  "name": "github-file-uploader",
+  "name": "github-uploader",
   "version": "1.0.0",
-  "description": "A simple web app to upload files and folders to a GitHub repository.",
+  "description": "Upload files and folders to GitHub.",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
-    "axios": "^0.27.2",
-    "dotenv": "^10.0.0",
-    "express": "^4.17.1",
-    "multer": "^1.4.3"
-  },
-  "author": "Your Name",
-  "license": "MIT"
+    "express": "^4.18.2",
+    "multer": "^1.4.5",
+    "node-fetch": "^2.6.7"
+  }
 }
