@@ -3,7 +3,7 @@ document.getElementById("uploadForm").addEventListener("submit", async function 
 
     const token = document.getElementById("githubToken").value;
     const repo = document.getElementById("repository").value;
-    const files = document.getElementById("fileInput").files;
+    const files = document.getElementById("filesInput").files;
 
     if (!files.length) {
         alert("Please select files or folders to upload.");
@@ -18,7 +18,8 @@ document.getElementById("uploadForm").addEventListener("submit", async function 
     formData.append("repository", repo);
 
     Array.from(files).forEach((file) => {
-        formData.append("files", file, file.webkitRelativePath || file.name);
+        const relativePath = file.webkitRelativePath || file.name; // Preserve folder structure
+        formData.append("files", file, relativePath);
     });
 
     try {
