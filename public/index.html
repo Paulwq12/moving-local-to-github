@@ -8,13 +8,14 @@
 </head>
 <body>
     <div class="container">
-        <h1>Upload Files/Folders to GitHub</h1>
+        <h1>Upload Files and Folders to GitHub</h1>
         <form id="uploadForm">
             <label for="githubToken">GitHub Token:</label>
             <input type="text" id="githubToken" placeholder="Enter GitHub Token" required>
             <label for="repository">Repository (user/repo):</label>
             <input type="text" id="repository" placeholder="e.g., user/repo" required>
-            <input type="file" id="fileInput" webkitdirectory multiple>
+            <label for="filesInput">Select Files or Folders:</label>
+            <input type="file" id="filesInput" webkitdirectory multiple>
             <button type="submit">Upload</button>
         </form>
         <div id="status"></div>
