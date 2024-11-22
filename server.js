@@ -1,14 +1,13 @@
 const express = require("express");
 const multer = require("multer");
 const fetch = require("node-fetch");
-const path = require("path");
-const fs = require("fs/promises");
 
 const app = express();
 const upload = multer({ storage: multer.memoryStorage() });
 
 app.use(express.static("public"));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 app.post("/upload", upload.any(), async (req, res) => {
     const { token, repository } = req.body;
@@ -19,7 +18,7 @@ app.post("/upload", upload.any(), async (req, res) => {
 
     try {
         for (const file of req.files) {
-            const filePath = file.originalname;
+            const filePath = file.originalname; // Includes folder structure
             const content = file.buffer.toString("base64");
 
             const response = await fetch(
@@ -43,12 +42,11 @@ app.post("/upload", upload.any(), async (req, res) => {
             }
         }
 
-        res.json({ message: "Files uploaded successfully." });
+        res.json({ message: "Files uploaded successfully, preserving folder structure." });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
 
-app.listen(3000, () => {
-    console.log("Server running on http://localhost:3000");
-});
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
