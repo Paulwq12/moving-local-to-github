@@ -3,23 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Uploader</title>
     <link rel="stylesheet" href="styles.css">
-    <title>Upload to GitHub</title>
 </head>
 <body>
-    <h1>Upload Files to GitHub Repository</h1>
-    <form id="upload-form" enctype="multipart/form-data">
-        <label for="repo">GitHub Repository (owner/repo):</label>
-        <input type="text" id="repo" name="repo" required>
-        
-        <label for="token">GitHub Personal Access Token:</label>
-        <input type="text" id="token" name="token" required>
-        
-        <label for="files">Select files or folders:</label>
-        <input type="file" id="files" name="files" webkitdirectory multiple required>
-        
-        <button type="submit">Upload</button>
-    </form>
-    <script src="script.js"></script>
+    <div class="container">
+        <h1>Upload Files/Folders to GitHub</h1>
+        <form id="uploadForm">
+            <label for="githubToken">GitHub Token:</label>
+            <input type="text" id="githubToken" placeholder="Enter GitHub Token" required>
+            <label for="repository">Repository (user/repo):</label>
+            <input type="text" id="repository" placeholder="e.g., user/repo" required>
+            <input type="file" id="fileInput" webkitdirectory multiple>
+            <button type="submit">Upload</button>
+        </form>
+        <div id="status"></div>
+    </div>
+    <script src="app.js"></script>
 </body>
 </html>
