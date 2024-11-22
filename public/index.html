@@ -1,39 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Upload to GitHub Repository</title>
-  <link rel="stylesheet" href="styles.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Upload to GitHub</title>
 </head>
 <body>
-  <div class="container">
-    <h1>Upload Folder/Files to GitHub Repository</h1>
-
-    <form id="uploadForm" action="/upload" method="POST" enctype="multipart/form-data">
-      <div>
-        <label for="repoUrl">GitHub Repository URL:</label>
-        <input type="text" id="repoUrl" name="repoUrl" placeholder="https://github.com/username/repo" required />
-      </div>
-
-      <div>
+    <h1>Upload Files to GitHub Repository</h1>
+    <form id="upload-form" enctype="multipart/form-data">
+        <label for="repo">GitHub Repository (owner/repo):</label>
+        <input type="text" id="repo" name="repo" required>
+        
         <label for="token">GitHub Personal Access Token:</label>
-        <input type="password" id="token" name="token" placeholder="Your GitHub token" required />
-      </div>
-
-      <div>
-        <label for="files">Select Folder/Files:</label>
-        <input type="file" id="files" name="files" webkitdirectory directory multiple required />
-      </div>
-
-      <div>
-        <button type="submit">Upload Files</button>
-      </div>
+        <input type="text" id="token" name="token" required>
+        
+        <label for="files">Select files or folders:</label>
+        <input type="file" id="files" name="files" webkitdirectory multiple required>
+        
+        <button type="submit">Upload</button>
     </form>
-
-    <div id="message"></div>
-  </div>
-
-  <script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
