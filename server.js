@@ -3,6 +3,7 @@ const multer = require("multer");
 const simpleGit = require("simple-git");
 const fs = require("fs");
 const path = require("path");
+const fsExtra = require("fs-extra");
 
 const app = express();
 const PORT = 3040;
@@ -31,27 +32,31 @@ app.post("/upload", upload.array("files"), async (req, res) => {
     return res.status(400).json({ error: "Missing repository URL or token." });
   }
 
-  // Ensure token is integrated into the repository URL
-  const username = repoUrl.split("/")[3]; // Extract username from repo URL
+  const username = repoUrl.split("/")[3];
   const authenticatedRepoUrl = `https://${username}:${token}@${repoUrl.split("https://")[1]}`;
-
   const localRepoPath = path.join(__dirname, "temp-repo");
 
   try {
-    // Clone the repository
     const git = simpleGit();
     if (fs.existsSync(localRepoPath)) {
       fs.rmSync(localRepoPath, { recursive: true, force: true });
     }
     await git.clone(authenticatedRepoUrl, localRepoPath);
 
-    // Copy uploaded files to the repository
-    files.forEach((file) => {
+    // Move files and folders to the repository
+    for (const file of files) {
       const destPath = path.join(localRepoPath, file.originalname);
-      fs.renameSync(file.path, destPath);
-    });
 
-    // Push changes to the repository
+      // Check if the uploaded file is a directory or a file
+      if (fs.statSync(file.path).isDirectory()) {
+        // If it's a directory, use fs-extra to move the entire folder
+        await fsExtra.move(file.path, destPath, { overwrite: true });
+      } else {
+        // If it's a file, move it to the destination folder
+        fs.renameSync(file.path, destPath);
+      }
+    }
+
     const gitRepo = simpleGit(localRepoPath);
     await gitRepo.addConfig("user.name", "Uploader");
     await gitRepo.addConfig("user.email", "uploader@example.com");
@@ -62,11 +67,10 @@ app.post("/upload", upload.array("files"), async (req, res) => {
     // Cleanup
     fs.rmSync(localRepoPath, { recursive: true, force: true });
 
-    res.json({ message: "Files successfully pushed to the repository." });
+    res.json({ message: "Files and folders successfully pushed to the repository." });
   } catch (error) {
     console.error(error);
 
-    // Cleanup in case of error
     if (fs.existsSync(localRepoPath)) {
       fs.rmSync(localRepoPath, { recursive: true, force: true });
     }
