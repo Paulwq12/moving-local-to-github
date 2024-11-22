@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upload to GitHub</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Upload to GitHub Repository</h1>
+    <form id="uploadForm" enctype="multipart/form-data">
+      <label for="folder">Select Folder or File:</label>
+      <input type="file" id="folder" name="folder" webkitdirectory multiple required>
+
+      <label for="repoUrl">GitHub Repository URL:</label>
+      <input type="text" id="repoUrl" name="repoUrl" placeholder="https://github.com/user/repo.git" required>
+
+      <label for="token">GitHub Personal Access Token:</label>
+      <input type="password" id="token" name="token" placeholder="Your GitHub Token" required>
+
+      <button type="submit">Push to GitHub</button>
+    </form>
+    <div id="status"></div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
