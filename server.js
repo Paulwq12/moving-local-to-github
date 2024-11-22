@@ -6,7 +6,7 @@ const path = require("path");
 const fsExtra = require("fs-extra");
 
 const app = express();
-const PORT = 3040;
+const PORT = 3000;
 
 // Ensure "uploads" folder exists
 const uploadsFolder = path.join(__dirname, "uploads");
@@ -47,10 +47,9 @@ app.post("/upload", upload.array("files"), async (req, res) => {
     for (const file of files) {
       const destPath = path.join(localRepoPath, file.originalname);
 
-      // Check if the uploaded file is a directory or a file
+      // If the uploaded file is a directory, move it recursively
       if (fs.statSync(file.path).isDirectory()) {
-        // If it's a directory, use fs-extra to move the entire folder
-        await fsExtra.move(file.path, destPath, { overwrite: true });
+        await moveDirectory(file.path, destPath);
       } else {
         // If it's a file, move it to the destination folder
         fs.renameSync(file.path, destPath);
@@ -78,6 +77,19 @@ app.post("/upload", upload.array("files"), async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+// Function to move a directory and its contents
+async function moveDirectory(sourceDir, destDir) {
+  try {
+    // Use fs-extra to copy the entire directory structure (including subfolders and files)
+    await fsExtra.copy(sourceDir, destDir, { overwrite: true });
+
+    // Remove the original uploaded directory after moving its contents
+    await fsExtra.remove(sourceDir);
+  } catch (err) {
+    console.error("Error moving directory:", err);
+  }
+}
 
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
