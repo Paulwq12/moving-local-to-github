@@ -1,25 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GitHub Uploader</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GitHub File/Folder Uploader</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <h1>Upload Files and Folders to GitHub</h1>
-        <form id="uploadForm">
-            <label for="githubToken">GitHub Token:</label>
-            <input type="text" id="githubToken" placeholder="Enter GitHub Token" required>
-            <label for="repository">Repository (user/repo):</label>
-            <input type="text" id="repository" placeholder="e.g., user/repo" required>
-            <label for="filesInput">Select Files or Folders:</label>
-            <input type="file" id="filesInput" webkitdirectory multiple>
-            <button type="submit">Upload</button>
-        </form>
-        <div id="status"></div>
-    </div>
-    <script src="app.js"></script>
+  <div class="container">
+    <h1>Upload Files and Folders to GitHub</h1>
+    <form id="uploadForm">
+      <label for="files">Select Files or Folders:</label>
+      <input type="file" id="files" name="files" webkitdirectory multiple>
+      <input type="text" id="repository" placeholder="GitHub Repository (e.g., user/repo)" required>
+      <input type="password" id="token" placeholder="GitHub Personal Access Token" required>
+      <button type="submit">Upload</button>
+    </form>
+    <div id="status"></div>
+  </div>
+  <script src="script.js"></script>
 </body>
 </html>
